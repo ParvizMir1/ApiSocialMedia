@@ -15,14 +15,11 @@ class GetAllPhotosOrAddPhoto(Resource):
         pass
 
 
-@api.route('/<int:exact_photo_id>')  # get exact photo
-class GetExactPhotoById(Resource):
-    def get(self, exact_photo_id: int):
-        pass
-
-
 @api.route('/<int:photo_id>')  # put/delete
 class ChangeOrDeletePhoto(Resource):
+    def get(self, post_id: int):
+        pass
+
     def put(self, photo_id: int):
         pass
 

@@ -1,3 +1,5 @@
+import datetime
+
 from main import db
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -10,8 +12,15 @@ class User(db.Model):
     first_name = db.Column(db.String, nullable=False)
     last_name = db.Column(db.String, nullable=True)
     email = db.Column(db.String, nullable=False)
-    phone_number = db.Column(db.String, nullable=False)
+    phone_number = db.Column(db.String, nullable=False, unique=True)
     about = db.Column(db.String, nullable=True)
+
+    def register_user(self, username: str, first_name: str, last_name: str, email: str, phone_number: str, about: str):
+        new_user = User(username=username, first_name=first_name, last_name=last_name, email=email,
+                        phone_number=phone_number, about=about)
+
+        db.session.add(new_user)
+        db.session.commit()
 
     # Изменить имя
     def change_username(self, user_id: int, new_username: str):
@@ -71,6 +80,13 @@ class Post(db.Model):
 
     user = db.relationship('User')
 
+    # Добавление поста
+    def create_post(self, header: str, main_text: str, publish_date, user_id: int):
+        new_post = Post(header=header, main_text=main_text, publish_date=publish_date, user_id=user_id)
+
+        db.session.add(new_post)
+        db.session.commit()
+
     # Изменить заголовок
     def change_header(self, post_id: int, new_header: str):
         current_post = Post.query.get_or_404(post_id)
@@ -107,7 +123,7 @@ class Post(db.Model):
 # Таблица фото
 class PhotoPost(db.Model):
     __tablename__ = 'photos_for_post'
-    id = db.Column(db.Integer, primary_key=True, aoutoincrement=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     post_id = db.Column(db.Integer, db.ForeignKey('posts.id', ondelete='SET NULL'))
     photo_path = db.Column(db.String, nullable=False)
 
@@ -116,11 +132,18 @@ class PhotoPost(db.Model):
 
 class Comment(db.Model):
     __tablename__ = 'comments'
-    id = db.Column(db.Integer, primary_key=True, aoutoincrement=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     text = db.Column(db.String, nullable=False)
     likes = db.Column(db.Integer, nullable=True, default=0)
-    date = db.Cilumn(db.DateTime)
+    publish_date = db.Column(db.DateTime)
     post_id = db.Column(db.Integer, db.ForeignKey('posts.id', ondelete='SET NULL'))
+
+    # Добавить комментарии
+    def add_comment(self, text: str, post_id: int, publish_date):
+        new_comment = Comment(text=text, post_id=post_id, publish_date=publish_date)
+
+        db.session.add(new_comment)
+        db.session.commit()
 
     # Изметь текс комментарии
     def change_text(self, comment_id: int, new_text: str):
@@ -135,7 +158,7 @@ class Comment(db.Model):
 
     # Удалить коммент
     def delete_comment(self, comment_id: int):
-        current_comment = Comment.query_or_404(comment_id)
+        current_comment = Comment.query.get_or_404(comment_id)
         db.session.delete(current_comment)
         db.session.commit()
 
@@ -149,18 +172,25 @@ class Comment(db.Model):
 # Таблица хэштегов
 class Hashtag(db.Model):
     __tablename__ = 'hashtags'
-    id = db.Column(db.Integer, primary_key=True, aoutoincrement=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     hash_name = db.Column(db.String, nullable=False, unique=True)
     post_id = db.Column(db.Integer, db.ForeignKey('posts.id', ondelete='SET NULL'))
 
     post = db.relationship('Post')
+
+    # Добавление хэштега
+    def add_hashtag(self, hash_name: str, post_id: int):
+        new_hashtag = Hashtag(hash_name=hash_name, post_id=post_id)
+
+        db.session.add(new_hashtag)
+        db.session.commit()
 
 
 # Таблица паролей
 class Password(db.Model):
     __tablename__ = 'passwords'
     password = db.Column(db.String, nullable=False)
-    user_id = db.Column(db.Integr, db.ForeignKey('users.id', ondelete='SET NULL'))
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), primary_key=True)
 
     user = db.relationship('User')
 
