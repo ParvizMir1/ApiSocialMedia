@@ -3,7 +3,7 @@ from flask_restx import Resource, Api, fields
 from database.models import Comment
 from datetime import datetime
 
-bp = Blueprint('comments', __name__, url_prefix='/comment')
+bp = Blueprint('comments', __name__, url_prefix='/comments')
 api = Api(bp)
 
 comment_model = api.model('comment_model', {'comment_text': fields.String})
@@ -14,7 +14,6 @@ comment_model = api.model('comment_model', {'comment_text': fields.String})
 class GetOrPostComment(Resource):
     def get(self, post_id: int):
         current_comment = Comment.query.get_or_404(post_id)
-        print(current_comment)
         if current_comment:
             result = {'id': current_comment.id,
                       'main_text': current_comment.text,
@@ -38,7 +37,7 @@ class GetOrPostComment(Resource):
         try:
             Comment().add_comment(comment_text, post_id, publish_date)
 
-            return {'status': 1, 'message': 'Успещно добавлено'}
+            return {'status': 1, 'message': 'Успешно добавлено'}
 
         except Exception as e:
             print(e)
@@ -68,7 +67,8 @@ class AddLikeToComment(Resource):
 
             return {'status': 1, 'message': 'Успешно +1 лайк'}
 
-        except:
+        except Exception as e:
+            print(e)
             return {'status': 0, 'message': 'Ошибка в данных'}
 
 

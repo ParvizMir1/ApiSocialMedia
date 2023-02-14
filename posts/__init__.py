@@ -5,6 +5,9 @@ from database.models import Post
 from datetime import datetime
 
 from werkzeug.datastructures import FileStorage  # Для файлов
+from werkzeug.utils import secure_filename  # для зашиты моста
+
+import os
 
 bp = Blueprint('posts', __name__, url_prefix='/posts')
 api = Api(bp)
@@ -40,13 +43,17 @@ class GetAllPostsOrCreate(Resource):
     @api.expect(upload_parser)
     def post(self):
         response = upload_parser.parse_args()
+        post_image = response.get('file')
         header = response.get('header')
         main_text = response.get('main_text')
         user_id = response.get('user_id')
         publish_date = datetime.now()
 
         try:
-            Post().create_post(header, main_text, publish_date, user_id)
+            filename = secure_filename(post_image.filename)
+            post_image.save(os.path.join('media/', filename))
+
+            Post().create_post(header, main_text, publish_date, user_id, filename)
 
             return {'status': 1, 'message': 'Пост успешно добавлен'}
 

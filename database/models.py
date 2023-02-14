@@ -79,12 +79,18 @@ class Post(db.Model):
     post_likes = db.Column(db.Integer, default=0)
 
     user = db.relationship('User')
+    post_image = db.relationship('PhotoPost')
 
     # Добавление поста
-    def create_post(self, header: str, main_text: str, publish_date, user_id: int):
+    def create_post(self, header: str, main_text: str, publish_date, user_id: int, image: str):
         new_post = Post(header=header, main_text=main_text, publish_date=publish_date, user_id=user_id)
 
+        image_for_post = PhotoPost()
+        image_for_post.photo_path = f'media/{image}'
+        self.post_image.append(image_for_post)
+
         db.session.add(new_post)
+        db.session.add(image_for_post)
         db.session.commit()
 
     # Изменить заголовок
@@ -127,7 +133,19 @@ class PhotoPost(db.Model):
     post_id = db.Column(db.Integer, db.ForeignKey('posts.id', ondelete='SET NULL'))
     photo_path = db.Column(db.String, nullable=False)
 
-    post = db.relationship('Post')
+    # Изменение фотографии
+    def change_post_image(self, photo_id: int, new_photo: str):
+        old_photo = PhotoPost.query.get_or_404(photo_id)
+        old_photo.photo_path = f'media/{new_photo}'
+
+        db.session.commit()
+
+    # Удалить фото
+    def delete_photo(self, photo_id):
+        current_photo = PhotoPost.query.get_or_404(photo_id)
+
+        db.session.delete(current_photo)
+        db.session.commit()
 
 
 class Comment(db.Model):
@@ -195,8 +213,12 @@ class Password(db.Model):
     user = db.relationship('User')
 
     # Генерация пароля
-    def set_password(self, password: str):
+    def set_password(self, password: str, user_id: int):
         self.password = generate_password_hash(password)
+        new = Password(user_id=user_id, password=self.password)
+
+        db.session.add(new)
+        db.session.commit()
 
     # Проверка пароля
     def check_password(self, password: str):
@@ -206,9 +228,9 @@ class Password(db.Model):
     def change_password(self, user_id: int, new_password: str):
         user = Password.query.get_or_404(user_id)
 
-        if user.password == new_password:
+        if check_password_hash(user.password, new_password):
             return 'Старый пароль не должен совпадать с новым'
 
-        user.password = new_password
+        user.password.password = generate_password_hash(new_password)
 
         db.session.commit()
