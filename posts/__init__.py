@@ -5,6 +5,9 @@ from database.models import Post
 from datetime import datetime
 
 from werkzeug.datastructures import FileStorage  # Для файлов
+from werkzeug.utils import secure_filename  # для зашиты моста
+
+import os
 
 from werkzeug.utils import secure_filename
 import os
@@ -44,16 +47,26 @@ class GetAllPostsOrCreate(Resource):
     def post(self):
         response = upload_parser.parse_args()
         post_image = response.get('file')
+<<<<<<< HEAD
         print(post_image)
+=======
+>>>>>>> origin/main
         header = response.get('header')
         main_text = response.get('main_text')
         user_id = response.get('user_id')
         publish_date = datetime.now()
 
         try:
+<<<<<<< HEAD
             file_name = secure_filename(post_image.filename)
             post_image.save(os.path.join('media/', file_name))
             Post().create_post(header, main_text, publish_date, user_id, post_image)
+=======
+            filename = secure_filename(post_image.filename)
+            post_image.save(os.path.join('media/', filename))
+
+            Post().create_post(header, main_text, publish_date, user_id, filename)
+>>>>>>> origin/main
 
             return {'status': 1, 'message': 'Пост успешно добавлен'}
 

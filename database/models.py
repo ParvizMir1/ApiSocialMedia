@@ -79,13 +79,18 @@ class Post(db.Model):
     post_likes = db.Column(db.Integer, default=0)
 
     user = db.relationship('User')
+    post_image = db.relationship('PhotoPost')
 
 
     # Добавление поста
     def create_post(self, header: str, main_text: str, publish_date, user_id: int, image: str):
         new_post = Post(header=header, main_text=main_text, publish_date=publish_date, user_id=user_id)
 
+<<<<<<< HEAD
         image_for_post = PhotoPost(post_id=self.id, photo_path=image)
+=======
+        image_for_post = PhotoPost()
+>>>>>>> origin/main
         image_for_post.photo_path = f'media/{image}'
         self.post_image.append(image_for_post)
 
@@ -133,6 +138,7 @@ class PhotoPost(db.Model):
     post_id = db.Column(db.Integer, db.ForeignKey('posts.id', ondelete='SET NULL'))
     photo_path = db.Column(db.String, nullable=False)
 
+<<<<<<< HEAD
     def change_post_image(self, photo_id, new_photo):
         old_photo = PhotoPost.query.get_or_404(photo_id)
         old_photo.photo_path = f'media{new_photo}'
@@ -141,6 +147,19 @@ class PhotoPost(db.Model):
 
     def delete_post_image(self, photo_id):
         current_photo = PhotoPost.query.get_or_404(photo_id)
+=======
+    # Изменение фотографии
+    def change_post_image(self, photo_id: int, new_photo: str):
+        old_photo = PhotoPost.query.get_or_404(photo_id)
+        old_photo.photo_path = f'media/{new_photo}'
+
+        db.session.commit()
+
+    # Удалить фото
+    def delete_photo(self, photo_id):
+        current_photo = PhotoPost.query.get_or_404(photo_id)
+
+>>>>>>> origin/main
         db.session.delete(current_photo)
         db.session.commit()
 
@@ -210,13 +229,20 @@ class Password(db.Model):
     user = db.relationship('User')
 
     # Генерация пароля
+<<<<<<< HEAD
     def set_password(self, password: str, user_id: str):
+=======
+    def set_password(self, password: str, user_id: int):
+>>>>>>> origin/main
         self.password = generate_password_hash(password)
         new = Password(user_id=user_id, password=self.password)
 
         db.session.add(new)
         db.session.commit()
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/main
 
     # Проверка пароля
     def check_password(self, password: str):
@@ -226,9 +252,16 @@ class Password(db.Model):
     def change_password(self, user_id: int, new_password: str):
         user = Password.query.get_or_404(user_id)
 
+<<<<<<< HEAD
         if check_password_hash(user.password, new_password) == new_password:
             return 'Старый пароль не должен совпадать с новым'
 
         user.password = generate_password_hash(new_password)
+=======
+        if check_password_hash(user.password, new_password):
+            return 'Старый пароль не должен совпадать с новым'
+
+        user.password.password = generate_password_hash(new_password)
+>>>>>>> origin/main
 
         db.session.commit()
